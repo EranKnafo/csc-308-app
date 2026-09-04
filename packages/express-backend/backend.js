@@ -36,9 +36,26 @@ const users = {
   ]
 };
 
+// delete user function
+const deleteUser = (id) => {
+  const index = users.users_list.findIndex((u) => u.id === id);
+  if (index === -1) {
+    return false;
+  }
+  users.users_list.splice(index, 1);
+  return true;
+};
+
 const findUserByName = (name) => {
   return users["users_list"].filter(
     (user) => user["name"] === name
+  );
+};
+
+// find user by name and job
+const findUserByNameAndJob = (name, job) => {
+  return users["users_list"].filter(
+    (user) => user["name"] === name && user["job"] === job
   );
 };
 
@@ -56,6 +73,16 @@ app.post("/users", (req, res) => {
   res.send();
 });
 
+app.delete("/users/:id", (req, res) => {
+  const id = req.params["id"];
+  const wasDeleted = deleteUser(id);
+  if (wasDeleted) {
+    res.send();
+  } else {
+    res.status(404).send("Resource not found.");
+  }
+});
+
 app.get("/users/:id", (req, res) => {
   const id = req.params["id"]; //or req.params.id
   let result = findUserById(id);
@@ -68,7 +95,12 @@ app.get("/users/:id", (req, res) => {
 
 app.get("/users", (req, res) => {
   const name = req.query.name;
-  if (name != undefined) {
+  const job = req.query.job;
+  if (name != undefined && job != undefined) {
+    let result = findUserByNameAndJob(name, job);
+    result = { users_list: result };
+    res.send(result);
+  } else if (name != undefined) {
     let result = findUserByName(name);
     result = { users_list: result };
     res.send(result);
